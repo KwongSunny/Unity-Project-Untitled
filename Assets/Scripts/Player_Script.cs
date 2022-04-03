@@ -19,7 +19,7 @@ public class Player_Script : Unit_Script
     public bool isFlinching;
     public bool isWallSliding;
     public bool isWallJumping;
-
+    public List<string> crushCollisions;
     public string lastWeapon = "none";
 
     public bool facingRight = true;
@@ -129,6 +129,7 @@ public class Player_Script : Unit_Script
         maxHp = 4;
         hp = maxHp;
         damage = 1;
+        crushCollisions = new List<string>(2);
     }
 
     void Face(string direction)
@@ -575,6 +576,47 @@ public class Player_Script : Unit_Script
         DashHandler();
         MoveHandler();
         Jump();
+
+        if (crushCollisions.Count == 2) Destroy(gameObject);
+
     }
 
+    void OnCollisionEnter2D(Collision2D collision)
+    {
+        if (collision.gameObject.tag == "ground" && crushCollisions.Find(it => it == "ground") == null)
+        {
+            Debug.Log("adding ground collision");
+            crushCollisions.Add(collision.gameObject.tag);
+        }
+    }
+
+
+    void OnCollisionExit2D(Collision2D collision)
+    {
+        if (collision.gameObject.tag == "ground")
+        {
+            Debug.Log("rEMOVING ground collision");
+            crushCollisions.Remove(collision.gameObject.tag);
+        }
+    }
+
+    void OnTriggerEnter2D(Collider2D collider)
+    {
+        Debug.Log(collider.gameObject.tag);
+        if (collider.gameObject.tag == "Crush" && crushCollisions.Find(it => it == "Crush") == null)
+        {
+            Debug.Log("Adding crush collision");
+            crushCollisions.Add(collider.gameObject.tag);
+        }
+
+    }
+    void OnTriggerExit2D(Collider2D collider)
+    {
+        if (collider.gameObject.tag == "Crush")
+        {
+            Debug.Log("rEMOVING crush collision");
+            crushCollisions.Remove(collider.gameObject.tag);
+        }
+    }
 }
+
