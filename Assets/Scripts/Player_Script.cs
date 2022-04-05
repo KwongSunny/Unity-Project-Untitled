@@ -585,7 +585,6 @@ public class Player_Script : Unit_Script
     {
         if (collision.gameObject.tag == "ground" && crushCollisions.Find(it => it == "ground") == null)
         {
-            Debug.Log("adding ground collision");
             crushCollisions.Add(collision.gameObject.tag);
         }
     }
@@ -595,7 +594,6 @@ public class Player_Script : Unit_Script
     {
         if (collision.gameObject.tag == "ground")
         {
-            Debug.Log("rEMOVING ground collision");
             crushCollisions.Remove(collision.gameObject.tag);
         }
     }
@@ -605,7 +603,6 @@ public class Player_Script : Unit_Script
         Debug.Log(collider.gameObject.tag);
         if (collider.gameObject.tag == "Crush" && crushCollisions.Find(it => it == "Crush") == null)
         {
-            Debug.Log("Adding crush collision");
             crushCollisions.Add(collider.gameObject.tag);
         }
 
@@ -614,7 +611,6 @@ public class Player_Script : Unit_Script
     {
         if (collider.gameObject.tag == "Crush")
         {
-            Debug.Log("rEMOVING crush collision");
             crushCollisions.Remove(collider.gameObject.tag);
         }
     }
