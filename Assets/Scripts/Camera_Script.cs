@@ -21,11 +21,12 @@ public class Camera_Script : MonoBehaviour
 
     void TrackPlayer()
     {
-        Debug.Log("current x bound:" + X_BOUND + ", current player position:" + player.transform.position.x + "camera position: " + transform.position.x);
 
         float nextX = transform.position.x;
         if (X_BOUND != 0)
         {
+            if (player.transform.position.x < 0 && player.transform.position.x <= X_BOUND)
+                nextX = player.transform.position.x;
             if (player.transform.position.x < 0 && player.transform.position.x - 6.75 > X_BOUND)
             {
                 nextX = player.transform.position.x;
