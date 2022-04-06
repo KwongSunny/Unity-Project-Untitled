@@ -13,7 +13,6 @@ public class Player_Script : Unit_Script
     public bool isRunning;
     public bool isAttacking;
     public bool isParrying;
-    public bool isSliding;
     public bool isJumping;
     public bool isDashing;
     public bool isFlinching;
@@ -34,6 +33,7 @@ public class Player_Script : Unit_Script
     public int maxLightAttacks = 3;
     public int heavyCount = 0;
     public int maxHeavyAttacks = 1;
+    float heavyCooldown = 0.5f;
     float parryCooldown = 0.75f;
     float dashCooldown = 1.2f;
     float gravity = 6;
@@ -149,7 +149,7 @@ public class Player_Script : Unit_Script
 
     void Move()
     {
-        if (!isFlinching && !isDashing && !isParrying && !isSliding && !isWallJumping && !isWallJumping)
+        if (!isFlinching && !isDashing && !isParrying && !isWallJumping && !isWallJumping)
         {
             if ((Input.GetKey(KeyCode.LeftArrow) && Input.GetKey(KeyCode.RightArrow)))
             {
@@ -158,7 +158,8 @@ public class Player_Script : Unit_Script
             else horizontalForce = Input.GetAxisRaw("Horizontal");
 
             //Flip character
-            isRunning = true;
+            if(!isAttacking)
+                isRunning = true;
             if (horizontalForce > 0)
             {
                 Face(RIGHT);
@@ -176,7 +177,7 @@ public class Player_Script : Unit_Script
 
     void MoveHandler()
     {
-        if (isRunning && !isSliding)
+        if (isRunning && !isAttacking)
         {
             if (isWallSliding)
             {
@@ -211,11 +212,12 @@ public class Player_Script : Unit_Script
             }
 
         }
+        if(isAttacking) isRunning = false;
     }
 
     void Jump()
     {
-        if (Input.GetKey(KeyCode.Space) && jumps > 0 && !isSliding && !isWallJumping)
+        if (Input.GetKey(KeyCode.Space) && jumps > 0 && !isWallJumping)
         {
 
             jumps--;
@@ -283,25 +285,45 @@ public class Player_Script : Unit_Script
 
     void Light()
     {
-        // lastWeapon = "sword";
-        attackCount = (attackCount % maxLightAttacks) + 1;
-        timeOfLastAttack = Time.time;
-        
-        ChangeAnimatorState($"Player_Light_{attackCount}");
+        if(onGround){
+            attackCount = (attackCount % maxLightAttacks) + 1;
+            timeOfLastAttack = Time.time;
+            isAttacking = true;
+            rb2d.velocity = Vector2.zero;
+            if(facingRight) rb2d.AddForce(Vector2.right * 200);
+            else rb2d.AddForce(Vector2.left * 200);
+            ChangeAnimatorState($"Player_Light_{attackCount}");
 
-        // List<GameObject> enemies = hitboxes.transform.Find($"sword hb {attackCount}").GetComponent<Attack_Hitbox_Script>().enemyObjects;
-        // foreach (GameObject enemy in enemies)
-        // {
-        //     Unit_Script enemyScript = enemy.GetComponent<Unit_Script>();
-        //     enemyScript.RecieveDamage(damage);
-        // }
+            // List<GameObject> enemies = hitboxes.transform.Find($"sword hb {attackCount}").GetComponent<Attack_Hitbox_Script>().enemyObjects;
+            // foreach (GameObject enemy in enemies)
+            // {
+            //     Unit_Script enemyScript = enemy.GetComponent<Unit_Script>();
+            //     enemyScript.RecieveDamage(damage);
+            // }  
+        }
+
     }
 
+    //BUG: Spamming will keep the player in place even if running
     void Heavy(){
-        heavyCount = (heavyCount % maxHeavyAttacks) + 1;
-        timeOfLastHeavy = Time.time;
+        if(onGround && Time.time - timeOfLastHeavy > heavyCooldown){
+            heavyCount = (heavyCount % maxHeavyAttacks) + 1;
+            timeOfLastHeavy = Time.time;
+            isAttacking = true;
+            rb2d.velocity = Vector2.zero;
+            // if(facingRight) rb2d.velocity = Vector2.right * 3;
+            // else rb2d.velocity = Vector2.left * 3;
+            ChangeAnimatorState($"Player_Heavy_{heavyCount}");
+        }
+    }
 
-        ChangeAnimatorState($"Player_Heavy_{heavyCount}");
+    void AttackHandler()
+    {
+        if (isAttacking)
+        {
+            if (Time.time - timeOfLastAttack > animator.GetCurrentAnimatorStateInfo(0).length && Time.time - timeOfLastHeavy > animator.GetCurrentAnimatorStateInfo(0).length)
+                isAttacking = false;
+        }
     }
 
     void Dash()
@@ -434,7 +456,7 @@ public class Player_Script : Unit_Script
 
     void CheckRunning()
     {
-        if (onGround && !isFlinching && !isDashing && !isParrying && !isSliding && rb2d.velocity.magnitude != 0)
+        if (onGround && !isFlinching && !isDashing && !isParrying && rb2d.velocity.magnitude != 0)
         {
             isRunning = true;
         }
@@ -525,6 +547,7 @@ public class Player_Script : Unit_Script
             DequeuePriorityAction();
             EnqueuePriorityAction();
 
+            AttackHandler();
             AnimationHandler();
             ParryHandler();
 
@@ -533,7 +556,7 @@ public class Player_Script : Unit_Script
 
             WallJumpHandler();
 
-            if (!isDashing && !isSliding)
+            if (!isDashing)
                 //rb2d.velocity = new Vector2(Vector2.ClampMagnitude(rb2d.velocity, maxSpeed).x, rb2d.velocity.y);
 
             //reset attackCount after idle
