@@ -27,10 +27,9 @@ public class Unit_Script : MonoBehaviour
     }
 
     protected void ChangeAnimatorState(string state){
-        if(animator){
+        if(animator && !animator.GetCurrentAnimatorStateInfo(0).IsName(state)){
             currentState = state;
-            if(animator.GetCurrentAnimatorStateInfo(0).loop) animator.Play(state);
-            else animator.Play(state, -1, 0);    
+            animator.Play(state, -1, 0);
             timeOfLastStateChange = Time.time;
             
             //NEED TO FIX, REMOVE STATE SCRIPTS BECAUSE 1 SCRIPT FOR EVERY INSTANCE OF PREFAB 

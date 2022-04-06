@@ -16,7 +16,7 @@ public class Camera_Script : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        player = GameObject.Find("Player");
+
     }
 
     void TrackPlayer()
@@ -54,11 +54,11 @@ public class Camera_Script : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-
+        player = GetComponentInChildren<Player_Select_Script>().currentCharacter;
     }
 
     void FixedUpdate()
     {
-        TrackPlayer();
+        if(player) TrackPlayer();
     }
 }

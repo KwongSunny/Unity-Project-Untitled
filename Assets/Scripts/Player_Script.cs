@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class Player_Script : Unit_Script
 {
-    //Queue handler for uninteruptable actions (DASH, ATTACK, ABILITY, PARRY, SLIDE)
+    //Queue handler for uninteruptable actions (DASH, LIGHT, ABILITY, PARRY)
     Queue<string> priorityQueue = new Queue<string>();
 
     float horizontalForce;
@@ -28,10 +28,12 @@ public class Player_Script : Unit_Script
     public float jumpForce = 22f;
     public float wallJumpForceX = 10f;
     public float wallJumpForceY = 23.5f;
-    public float slideForce = 14f;
     public int maxJumps = 1;
     public int jumps = 1; //gets reset in Groundcheck_Script
     public int attackCount = 0;
+    public int maxLightAttacks = 3;
+    public int heavyCount = 0;
+    public int maxHeavyAttacks = 1;
     float parryCooldown = 0.75f;
     float dashCooldown = 1.2f;
     float gravity = 6;
@@ -39,6 +41,7 @@ public class Player_Script : Unit_Script
     float timeOfLastDash;
     float timeOfLastParry;
     float timeOfLastAttack;
+    float timeOfLastHeavy;
     float timeOfLastWallJump;
     float timeOfLastJump;
 
@@ -54,31 +57,30 @@ public class Player_Script : Unit_Script
     string PLAYER_RUN = "Player_Run";
     string PLAYER_SWORD_RUN = "Player_Sword_Run";
     string PLAYER_BOW_RUN = "Player_Bow_Run";
-    string PLAYER_SWORD_RUN_ATTACK_1 = "Player_Sword_Run_Attack_1";
-    string PLAYER_SWORD_RUN_ATTACK_2 = "Player_Sword_Run_Attack_2";
-    string PLAYER_SWORD_RUN_ATTACK_3 = "Player_Sword_Run_Attack_3";
-    string PLAYER_SWORD_ATTACK_1 = "Player_Sword_Attack_1";
-    string PLAYER_SWORD_ATTACK_2 = "Player_Sword_Attack_2";
-    string PLAYER_SWORD_ATTACK_3 = "Player_Sword_Attack_3";
+    string PLAYER_SWORD_RUN_ATTACK_1 = "Player_Light_1";
+    string PLAYER_SWORD_RUN_ATTACK_2 = "Player_Light_2";
+    string PLAYER_SWORD_RUN_ATTACK_3 = "Player_Light_3";
+    string PLAYER_SWORD_ATTACK_1 = "Player_Light_1";
+    string PLAYER_SWORD_ATTACK_2 = "Player_Light_2";
+    string PLAYER_SWORD_ATTACK_3 = "Player_Light_3";
     string PLAYER_PARRY = "Player_Parry";
-    string PLAYER_SLIDE = "Player_Slide";
-    string PLAYER_WALL_SLIDE = "Player_Wall_Slide";
+    string PLAYER_WALL_SLIDE = "Player_Wallslide";
     string PLAYER_JUMP_VERTICAL = "Player_Jump_Vertical";
     string PLAYER_JUMP_DIAGONAL = "Player_Jump_Diagonal";
     string PLAYER_FALL = "Player_Fall";
 
-    string ATTACK = "attack";
+    string LIGHT = "light";
+    string HEAVY = "heavy";
     string PARRY = "parry";
-    string SLIDE = "slide";
     string DASH = "dash";
 
     string RIGHT = "right";
     string LEFT = "left";
 
-    KeyCode ATTACK_KEY = KeyCode.C;
+    KeyCode LIGHT_KEY = KeyCode.X;
+    KeyCode HEAVY_KEY = KeyCode.C;
     KeyCode PARRY_KEY = KeyCode.V;
-    KeyCode SLIDE_KEY = KeyCode.DownArrow;
-    KeyCode DASH_KEY = KeyCode.X;
+    KeyCode DASH_KEY = KeyCode.Z;
 
     /*
     PLAYER ACTION STATES PRIORITY
@@ -88,7 +90,7 @@ public class Player_Script : Unit_Script
         DASH    [noloop]
             -
             
-        ATTACK  [noloop]
+        LIGHT  [noloop]
             -
             
         ABILITY [noloop]
@@ -97,23 +99,20 @@ public class Player_Script : Unit_Script
         PARRY   [noloop]
             -
 
-        SLIDE   [noloop]
-            -
-
         WALL SLIDE
             JUMP	
             
         JUMP
-            ATTACK - DASH - ABILITY
+            LIGHT - DASH - ABILITY
             
         HEAL
-            IDLE - RUN - JUMP - DASH - ATTACK - ABILITY - PARRY
+            IDLE - RUN - JUMP - DASH - LIGHT - ABILITY - PARRY
             
         IDLE
-            RUN - JUMP - DASH - ATTACK - ABILITY - HEAL - PARRY
+            RUN - JUMP - DASH - LIGHT - ABILITY - HEAL - PARRY
 
         RUN
-            IDLE - JUMP - DASH - ATTACK - ABILITY - HEAL - PARRY - SLIDE
+            IDLE - JUMP - DASH - LIGHT - ABILITY - HEAL - PARRY
     */
 
     // Start is called before the first frame update
@@ -132,7 +131,7 @@ public class Player_Script : Unit_Script
         crushCollisions = new List<string>(2);
     }
 
-    void Face(string direction)
+    public void Face(string direction)
     {
         if (direction == RIGHT)
         {
@@ -140,7 +139,7 @@ public class Player_Script : Unit_Script
             sr.flipX = false;
             hitboxes.transform.localScale = new Vector3(1, hitboxes.transform.localScale.y, hitboxes.transform.localScale.z);
         }
-        else
+        else if(direction == LEFT)
         {
             facingRight = false;
             sr.flipX = true;
@@ -214,38 +213,6 @@ public class Player_Script : Unit_Script
         }
     }
 
-    void Slide()
-    {
-        isSliding = true;
-        ChangeAnimatorState(PLAYER_SLIDE);
-
-        rb2d.velocity = Vector2.zero;
-        if (facingRight) rb2d.velocity = new Vector2(22, 0);
-        else rb2d.velocity = new Vector2(-22, 0);
-
-        //Not Ideal but, it's fine for now
-        boxCollider.size = new Vector2(boxCollider.size.x, boxCollider.size.y / 2);
-        boxCollider.offset = new Vector2(boxCollider.offset.x, (boxCollider.offset.y - (boxCollider.size.y / 2)));
-
-        //TODO Need to prevent getting stuck in tight spaces after slide is done (persist slide)
-    }
-
-    void SlideHandler(bool force = false)
-    {
-        if (isSliding || force)
-        {
-
-            if (isWallSliding || Time.time - timeOfLastStateChange > animator.GetCurrentAnimatorStateInfo(0).length - 0.02f)
-            {
-
-                finishedAnimationState = true;
-                boxCollider.size = new Vector2(boxCollider.size.x, boxCollider.size.y * 2);
-                boxCollider.offset = new Vector2(boxCollider.offset.x, (boxCollider.offset.y + (boxCollider.size.y / 4)));
-                isSliding = false;
-            }
-        }
-    }
-
     void Jump()
     {
         if (Input.GetKey(KeyCode.Space) && jumps > 0 && !isSliding && !isWallJumping)
@@ -309,26 +276,32 @@ public class Player_Script : Unit_Script
     {
         if (isParrying)
         {
-            if (Time.time - timeOfLastStateChange > animator.GetCurrentAnimatorStateInfo(0).length)
+            if (Time.time - timeOfLastParry > animator.GetCurrentAnimatorStateInfo(0).length)
                 isParrying = false;
         }
     }
 
-    void Attack()
+    void Light()
     {
         // lastWeapon = "sword";
-        attackCount = (attackCount % 3) + 1;
+        attackCount = (attackCount % maxLightAttacks) + 1;
         timeOfLastAttack = Time.time;
+        
+        ChangeAnimatorState($"Player_Light_{attackCount}");
 
-        if (isRunning) ChangeAnimatorState($"Player_Sword_Run_Attack_{attackCount}");
-        else ChangeAnimatorState($"Player_Sword_Attack_{attackCount}");
+        // List<GameObject> enemies = hitboxes.transform.Find($"sword hb {attackCount}").GetComponent<Attack_Hitbox_Script>().enemyObjects;
+        // foreach (GameObject enemy in enemies)
+        // {
+        //     Unit_Script enemyScript = enemy.GetComponent<Unit_Script>();
+        //     enemyScript.RecieveDamage(damage);
+        // }
+    }
 
-        List<GameObject> enemies = hitboxes.transform.Find($"sword hb {attackCount}").GetComponent<Attack_Hitbox_Script>().enemyObjects;
-        foreach (GameObject enemy in enemies)
-        {
-            Unit_Script enemyScript = enemy.GetComponent<Unit_Script>();
-            enemyScript.RecieveDamage(damage);
-        }
+    void Heavy(){
+        heavyCount = (heavyCount % maxHeavyAttacks) + 1;
+        timeOfLastHeavy = Time.time;
+
+        ChangeAnimatorState($"Player_Heavy_{heavyCount}");
     }
 
     void Dash()
@@ -426,12 +399,9 @@ public class Player_Script : Unit_Script
     {
         if (priorityQueue.Count < 2)
         {
-            if (Input.GetKeyDown(ATTACK_KEY)) priorityQueue.Enqueue(ATTACK);
+            if (Input.GetKeyDown(LIGHT_KEY)) priorityQueue.Enqueue(LIGHT);
+            if (Input.GetKeyDown(HEAVY_KEY)) priorityQueue.Enqueue(HEAVY);
             if (Input.GetKeyDown(PARRY_KEY)) priorityQueue.Enqueue(PARRY);
-            if (Input.GetKeyDown(SLIDE_KEY))
-            {
-                if (!isSliding && onGround && isRunning) priorityQueue.Enqueue(SLIDE);
-            }
             if (Input.GetKeyDown(DASH_KEY))
                 if (Time.time - timeOfLastDash > dashCooldown) priorityQueue.Enqueue(DASH);
         }
@@ -442,17 +412,17 @@ public class Player_Script : Unit_Script
         if (priorityQueue.Count > 0 && finishedAnimationState)
         {
             finishedAnimationState = false;
-            if (priorityQueue.Peek() == ATTACK)
+            if (priorityQueue.Peek() == LIGHT)
             {
-                Attack();
+                Light();
+            }
+            if (priorityQueue.Peek() == HEAVY)
+            {
+                Heavy();
             }
             if (priorityQueue.Peek() == PARRY)
             {
                 Parry();
-            }
-            if (priorityQueue.Peek() == SLIDE)
-            {
-                Slide();
             }
             if (priorityQueue.Peek() == DASH)
             {
@@ -542,43 +512,45 @@ public class Player_Script : Unit_Script
     // Update is called once per frame
     new void Update()
     {
-        base.Update();
+        if(GameObject.Find("Main Camera").GetComponentInChildren<Player_Select_Script>().currentCharacter == gameObject){
+            base.Update();
 
-        Move();
+            Move();
 
-        CheckRunning();
-        CheckGrounded();
-        CheckWall();
-        ChangeWeapon();
-        // CreateSpriteTrail();
-        DequeuePriorityAction();
-        EnqueuePriorityAction();
+            CheckRunning();
+            CheckGrounded();
+            CheckWall();
+            ChangeWeapon();
+            // CreateSpriteTrail();
+            DequeuePriorityAction();
+            EnqueuePriorityAction();
 
-        AnimationHandler();
-        SlideHandler();
-        ParryHandler();
+            AnimationHandler();
+            ParryHandler();
 
-        WallSlide();
-        WallSlideHandler();
+            WallSlide();
+            WallSlideHandler();
 
-        WallJumpHandler();
+            WallJumpHandler();
 
-        if (!isDashing && !isSliding)
-            //rb2d.velocity = new Vector2(Vector2.ClampMagnitude(rb2d.velocity, maxSpeed).x, rb2d.velocity.y);
+            if (!isDashing && !isSliding)
+                //rb2d.velocity = new Vector2(Vector2.ClampMagnitude(rb2d.velocity, maxSpeed).x, rb2d.velocity.y);
 
             //reset attackCount after idle
             if (Time.time - timeOfLastAttack > 0.4f) attackCount = 0;
-
+            if (Time.time - timeOfLastHeavy > 0.4f) heavyCount = 0;
+        }
     }
 
     void FixedUpdate()
     {
-        DashHandler();
-        MoveHandler();
-        Jump();
+        if(GameObject.Find("Main Camera").GetComponentInChildren<Player_Select_Script>().currentCharacter == gameObject){
+            DashHandler();
+            MoveHandler();
+            Jump();
 
-        if (crushCollisions.Count == 2) Destroy(gameObject);
-
+            if (crushCollisions.Count == 2) Destroy(gameObject);
+        }
     }
 
     void OnCollisionEnter2D(Collision2D collision)
@@ -600,7 +572,6 @@ public class Player_Script : Unit_Script
 
     void OnTriggerEnter2D(Collider2D collider)
     {
-        Debug.Log(collider.gameObject.tag);
         if (collider.gameObject.tag == "Crush" && crushCollisions.Find(it => it == "Crush") == null)
         {
             crushCollisions.Add(collider.gameObject.tag);

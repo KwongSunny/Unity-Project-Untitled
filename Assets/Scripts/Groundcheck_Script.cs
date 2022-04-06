@@ -6,17 +6,17 @@ public class Groundcheck_Script : MonoBehaviour
 {
 
     public bool onGround;
+    Player_Script playerScript;
 
     // Start is called before the first frame update
     void Start()
     {
-
+        playerScript = GetComponentInParent<Player_Script>();
     }
 
     private void OnTriggerStay2D(Collider2D collision){
         
         if(collision.gameObject.tag == "ground"){
-            Player_Script playerScript = GetComponentInParent<Player_Script>();
             playerScript.jumps = playerScript.maxJumps;
             onGround = true;
         }

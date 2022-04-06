@@ -318,10 +318,20 @@ MonoBehaviour:
   isJumping: 0
   isDashing: 0
   isFlinching: 0
+  isWallSliding: 0
+  isWallJumping: 0
+  crushCollisions: []
   lastWeapon: none
+  facingRight: 1
+  maxSpeed: 8
+  speedForce: 3
+  jumpForce: 22
+  wallJumpForceX: 10
+  wallJumpForceY: 23.5
   maxJumps: 2
   jumps: 2
   attackCount: 0
+  maxLightAttacks: 3
   afterimageObject: {fileID: 7846131311940659597, guid: c5481af89e45ff646873601532d2d917, type: 3}
   dashSprite: {fileID: 4239559038192805815, guid: ec5a3ea3829909848972a92ef5b41f07, type: 3}
   afterimageSprite: {fileID: 21300000, guid: 7c80362908b40724f9a2339fab50196f, type: 3}
@@ -414,7 +424,7 @@ SpriteRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
-  m_Sprite: {fileID: -842482836949106410, guid: cb4d450a52166b8438c6f1d6eeb30ade, type: 3}
+  m_Sprite: {fileID: -5258030014049578038, guid: 73cabedc126f68c4fb8bc4c69441e5e3, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0

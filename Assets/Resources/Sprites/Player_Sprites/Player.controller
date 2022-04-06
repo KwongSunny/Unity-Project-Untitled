@@ -98,7 +98,7 @@ AnimatorState:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: Player_Wall_Slide
+  m_Name: Player_Wallslide
   m_Speed: 1
   m_CycleOffset: 0
   m_Transitions: []
@@ -182,9 +182,6 @@ AnimatorStateMachine:
   - serializedVersion: 1
     m_State: {fileID: -7711854296332062942}
     m_Position: {x: 460, y: 260, z: 0}
-  - serializedVersion: 1
-    m_State: {fileID: 4565397003983906688}
-    m_Position: {x: 690, y: 190, z: 0}
   - serializedVersion: 1
     m_State: {fileID: 764893788055138193}
     m_Position: {x: 230, y: 120, z: 0}
@@ -298,7 +295,7 @@ AnimatorState:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: Player_Sword_Attack_1
+  m_Name: Player_Light_1
   m_Speed: 1
   m_CycleOffset: 0
   m_Transitions: []
@@ -398,7 +395,7 @@ AnimatorState:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: Player_Sword_Attack_2
+  m_Name: Player_Light_2
   m_Speed: 1
   m_CycleOffset: 0
   m_Transitions: []
@@ -443,32 +440,6 @@ AnimatorState:
   m_MirrorParameter: 
   m_CycleOffsetParameter: 
   m_TimeParameter: 
---- !u!1102 &4565397003983906688
-AnimatorState:
-  serializedVersion: 6
-  m_ObjectHideFlags: 1
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_Name: Player_Slide
-  m_Speed: 1
-  m_CycleOffset: 0
-  m_Transitions: []
-  m_StateMachineBehaviours: []
-  m_Position: {x: 50, y: 50, z: 0}
-  m_IKOnFeet: 0
-  m_WriteDefaultValues: 1
-  m_Mirror: 0
-  m_SpeedParameterActive: 0
-  m_MirrorParameterActive: 0
-  m_CycleOffsetParameterActive: 0
-  m_TimeParameterActive: 0
-  m_Motion: {fileID: 7400000, guid: 6892fabd7de315e4fb76ff2a79d7b257, type: 2}
-  m_Tag: 
-  m_SpeedParameter: 
-  m_MirrorParameter: 
-  m_CycleOffsetParameter: 
-  m_TimeParameter: 
 --- !u!1102 &5605029042742333162
 AnimatorState:
   serializedVersion: 6
@@ -502,7 +473,7 @@ AnimatorState:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: Player_Sword_Attack_3
+  m_Name: Player_Light_3
   m_Speed: 1
   m_CycleOffset: 0
   m_Transitions: []
