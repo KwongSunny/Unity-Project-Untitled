@@ -25,6 +25,7 @@ public class Player_Script : Unit_Script
     public float maxSpeed = 8f;
     public float speedForce = 3f;
     public float jumpForce = 22f;
+    float dashForce = 900f;
     public float wallJumpForceX = 10f;
     public float wallJumpForceY = 23.5f;
     public int maxJumps = 1;
@@ -37,6 +38,13 @@ public class Player_Script : Unit_Script
     float parryCooldown = 0.75f;
     float dashCooldown = 1.2f;
     float gravity = 6;
+
+    public int energy = 100;
+    public int maxEnergy = 100;
+
+    
+    [SerializeField] float verticalDashForce;
+    [SerializeField] float horizontalDashForce;
 
     float timeOfLastDash;
     float timeOfLastParry;
@@ -217,7 +225,7 @@ public class Player_Script : Unit_Script
 
     void Jump()
     {
-        if (Input.GetKey(KeyCode.Space) && jumps > 0 && !isWallJumping)
+        if (Input.GetKey(KeyCode.Space) && jumps > 0 && !isWallJumping && !isDashing)
         {
 
             jumps--;
@@ -333,51 +341,49 @@ public class Player_Script : Unit_Script
             isDashing = true;
             timeOfLastDash = Time.time;
 
-            rb2d.gravityScale = 0;
+            // float FORCE = 900f;
+            // rb2d.velocity = Vector2.zero;
+            // if (Input.GetKey(KeyCode.DownArrow) && Input.GetKey(KeyCode.LeftArrow)) rb2d.AddForce(new Vector2(-FORCE, -FORCE));
+            // else if (Input.GetKey(KeyCode.DownArrow) && Input.GetKey(KeyCode.RightArrow)) rb2d.AddForce(new Vector2(FORCE, -FORCE));
+            // else if (Input.GetKey(KeyCode.DownArrow)) rb2d.AddForce(new Vector2(0, -FORCE));
+            // else if (Input.GetKey(KeyCode.UpArrow) && Input.GetKey(KeyCode.LeftArrow)) rb2d.AddForce(new Vector2(-(FORCE * .7f), FORCE * .7f));
+            // else if (Input.GetKey(KeyCode.UpArrow) && Input.GetKey(KeyCode.RightArrow)) rb2d.AddForce(new Vector2(FORCE * .7f, FORCE * .7f));
+            // else if (Input.GetKey(KeyCode.UpArrow)) rb2d.AddForce(new Vector2(0, FORCE));
+            // else if (facingRight) rb2d.AddForce(new Vector2(FORCE, 0));
+            // else rb2d.AddForce(new Vector2(-(FORCE), 0));
+            // }
 
-            // animator.enabled = false;
-            // sr.sprite = dashSprite;
-            // if (isDashing)
-            // {
-            string direction;
-            float FORCE = 900f;
+            if(Input.GetKey(KeyCode.UpArrow)) verticalDashForce = dashForce;
+            else if(Input.GetKey(KeyCode.DownArrow)) verticalDashForce = -dashForce;
+            else verticalDashForce = 0F;
+
+            if(Input.GetKey(KeyCode.LeftArrow)) horizontalDashForce = -dashForce;
+            else if(Input.GetKey(KeyCode.RightArrow)) horizontalDashForce = dashForce;
+            else horizontalDashForce = 0F;
+
+            if(horizontalDashForce != 0 && verticalDashForce != 0){
+                horizontalDashForce *= 0.75f;
+                verticalDashForce *= 0.75f;
+            }
 
             rb2d.velocity = Vector2.zero;
-            if (Input.GetKey(KeyCode.DownArrow) && Input.GetKey(KeyCode.LeftArrow)) rb2d.AddForce(new Vector2(-FORCE, -FORCE));
-            else if (Input.GetKey(KeyCode.DownArrow) && Input.GetKey(KeyCode.RightArrow)) rb2d.AddForce(new Vector2(FORCE, -FORCE));
-            else if (Input.GetKey(KeyCode.DownArrow)) rb2d.AddForce(new Vector2(0, -FORCE));
-            else if (Input.GetKey(KeyCode.UpArrow) && Input.GetKey(KeyCode.LeftArrow)) rb2d.AddForce(new Vector2(-(FORCE * .7f), FORCE * .7f));
-            else if (Input.GetKey(KeyCode.UpArrow) && Input.GetKey(KeyCode.RightArrow)) rb2d.AddForce(new Vector2(FORCE * .7f, FORCE * .7f));
-            else if (Input.GetKey(KeyCode.UpArrow)) rb2d.AddForce(new Vector2(0, FORCE));
-            else if (facingRight) rb2d.AddForce(new Vector2(FORCE, 0));
-            else rb2d.AddForce(new Vector2(-(FORCE), 0));
-            // }
+            rb2d.AddForce(new Vector2(horizontalDashForce, verticalDashForce));
+
         }
     }
 
     void DashHandler()
     {
-        // if (isDashing)
-        // {
+        if(isDashing){
 
-        //     string direction;
-        //     float FORCE = 800f;
+            rb2d.gravityScale = 0;
+            //rb2d.velocity = new Vector2(horizontalDashForce, verticalDashForce);
+        }
 
-        //     rb2d.velocity = Vector2.zero;
-        //     if (Input.GetKey(KeyCode.DownArrow) && Input.GetKey(KeyCode.LeftArrow)) rb2d.AddForce(new Vector2(-FORCE, -FORCE));
-        //     else if (Input.GetKey(KeyCode.DownArrow) && Input.GetKey(KeyCode.RightArrow)) rb2d.AddForce(new Vector2(FORCE, -FORCE));
-        //     else if (Input.GetKey(KeyCode.DownArrow)) rb2d.AddForce(new Vector2(0, -FORCE));
-        //     else if (Input.GetKey(KeyCode.UpArrow) && Input.GetKey(KeyCode.LeftArrow)) rb2d.AddForce(new Vector2(-FORCE, FORCE));
-        //     else if (Input.GetKey(KeyCode.UpArrow) && Input.GetKey(KeyCode.RightArrow)) rb2d.AddForce(new Vector2(FORCE, FORCE));
-        //     else if (Input.GetKey(KeyCode.UpArrow)) rb2d.AddForce(new Vector2(0, FORCE));
-        //     else if (facingRight) rb2d.AddForce(new Vector2(FORCE, 0));
-        //     else rb2d.AddForce(new Vector2(-FORCE, 0));
-        // }
 
         if (isDashing && Time.time - timeOfLastDash > 0.12f)
         {
             rb2d.gravityScale = gravity;
-            // rb2d.velocity = Vector2.zero;
             // rb2d.velocity = new Vector2()
             isDashing = false;
             // animator.enabled = true;
@@ -534,7 +540,7 @@ public class Player_Script : Unit_Script
     // Update is called once per frame
     new void Update()
     {
-        if(GameObject.Find("Main Camera").GetComponentInChildren<Player_Select_Script>().currentCharacter == gameObject){
+        if(GameObject.Find("Main Camera").GetComponentInChildren<Player_Select_Script>().Character1 == gameObject){
             base.Update();
 
             Move();
@@ -556,9 +562,6 @@ public class Player_Script : Unit_Script
 
             WallJumpHandler();
 
-            if (!isDashing)
-                //rb2d.velocity = new Vector2(Vector2.ClampMagnitude(rb2d.velocity, maxSpeed).x, rb2d.velocity.y);
-
             //reset attackCount after idle
             if (Time.time - timeOfLastAttack > 0.4f) attackCount = 0;
             if (Time.time - timeOfLastHeavy > 0.4f) heavyCount = 0;
@@ -567,7 +570,7 @@ public class Player_Script : Unit_Script
 
     void FixedUpdate()
     {
-        if(GameObject.Find("Main Camera").GetComponentInChildren<Player_Select_Script>().currentCharacter == gameObject){
+        if(GameObject.Find("Main Camera").GetComponentInChildren<Player_Select_Script>().Character1 == gameObject){
             DashHandler();
             MoveHandler();
             Jump();

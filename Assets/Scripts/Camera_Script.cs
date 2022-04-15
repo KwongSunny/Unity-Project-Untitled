@@ -54,7 +54,7 @@ public class Camera_Script : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        player = GetComponentInChildren<Player_Select_Script>().currentCharacter;
+        player = GetComponentInChildren<Player_Select_Script>().Character1;
     }
 
     void FixedUpdate()
